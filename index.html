@@ -73,7 +73,7 @@ button:hover {
 
 <h2>fh_wlanapp</h2>
 
-<input type="text" id="inputText" placeholder="fh12345">
+<input type="text" id="inputText" placeholder="fh_1234.">
 <br>
 <button onclick="transform()">تحويل</button>
 
@@ -98,7 +98,7 @@ const rules = {
 };
 
 function transformText(text) {
-  if (text.startsWith("fh")) {
+  if (text.startsWith("fh_")) {
     text = text.substring(2);
   }
 
