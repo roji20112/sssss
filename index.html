@@ -24,7 +24,7 @@ input, button {
   width: 300px;
 }
 
-/* صورة عائمة خارج التصميم */
+/* صورة عائمة */
 .floating-img {
   position: fixed;
   bottom: 20px;
@@ -33,12 +33,23 @@ input, button {
   opacity: 0.9;
   z-index: 9999;
 }
+
+/* الفوتر */
+.footer {
+  position: fixed;
+  bottom: 5px;
+  width: 100%;
+  text-align: center;
+  font-size: 14px;
+  color: gray;
+  opacity: 0.7;
+}
 </style>
 
 </head>
 <body>
 
-<!-- لوجو فوق الموقع -->
+<!-- لوجو -->
 <img src="IMG_6141.jpeg" class="logo">
 
 <h2>fh_wlanapp</h2>
@@ -49,8 +60,13 @@ input, button {
 
 <h3 id="output"></h3>
 
-<!-- صورة خارج الموقع (زاوية الشاشة) -->
+<!-- صورة عائمة -->
 <img src="IMG_6141.jpeg" class="floating-img">
+
+<!-- الكتابة أسفل الموقع -->
+<footer class="footer">
+  by roji
+</footer>
 
 <script>
 // قواعد التحويل
