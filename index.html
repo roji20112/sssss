@@ -43,16 +43,6 @@ button:hover {
   background-color: #444;
 }
 
-/* صورة عائمة */
-.floating-img {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  width: 100px;
-  opacity: 0.9;
-  z-index: 9999;
-}
-
 /* الفوتر */
 .footer {
   position: fixed;
@@ -79,8 +69,6 @@ button:hover {
 
 <h3 id="output"></h3>
 
-<!-- صورة عائمة -->
-
 <!-- الفوتر -->
 <footer class="footer">
   WEB BY DEVELOPER ROJI©️
@@ -96,13 +84,13 @@ const rules = {
   "5": "a",
   "9": "6",
   "7": "8",
-  "8": "7"
-  "0": "f",
+  "8": "7",
+  "0": "f"
 };
 
 function transformText(text) {
   if (text.startsWith("fh_")) {
-    text = text.substring(2);
+    text = text.substring(3);
   }
 
   let result = "";
