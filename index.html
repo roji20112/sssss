@@ -3,20 +3,43 @@
 <head>
 <meta charset="UTF-8">
 <title>wlanapp</title>
+
 <style>
 body {
   font-family: Arial;
   text-align: center;
   margin-top: 50px;
 }
+
+/* اللوجو */
+.logo {
+  width: 180px;
+  margin-bottom: 20px;
+}
+
+/* فورم */
 input, button {
   padding: 10px;
   margin: 10px;
   width: 300px;
 }
+
+/* صورة عائمة خارج التصميم */
+.floating-img {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 100px;
+  opacity: 0.9;
+  z-index: 9999;
+}
 </style>
+
 </head>
 <body>
+
+<!-- لوجو فوق الموقع -->
+<img src="wlanap.jpg" class="logo">
 
 <h2>fh_wlanapp</h2>
 
@@ -25,6 +48,9 @@ input, button {
 <button onclick="transform()">تحويل</button>
 
 <h3 id="output"></h3>
+
+<!-- صورة خارج الموقع (زاوية الشاشة) -->
+<img src="logo.jpg" class="floating-img">
 
 <script>
 // قواعد التحويل
