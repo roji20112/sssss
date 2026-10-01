@@ -4,6 +4,7 @@ import pytesseract
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import (
     ApplicationBuilder,
+    CommandHandler,
     MessageHandler,
     ContextTypes,
     filters,
@@ -15,7 +16,7 @@ if not TOKEN:
     raise ValueError("BOT_TOKEN غير موجود في GitHub Secrets")
 
 
-# التحويل
+# تحويل الأرقام
 convert = {
     "1": "e",
     "0": "f",
@@ -33,7 +34,7 @@ convert = {
 def convert_text(text):
     text = text.strip()
 
-    # حذف fh_ من البداية
+    # حذف fh_
     if text.startswith("fh_"):
         text = text[3:]
 
@@ -53,41 +54,43 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     markup = ReplyKeyboardMarkup(
         keyboard,
-        resize_keyboard=True
+        resize_keyboard=True,
+        is_persistent=True
     )
 
     await update.message.reply_text(
-        "مرحبا 👋\n"
-        "اختار واش حاب تدير:",
+        "مرحبا 👋\n\n"
+        "اختار العملية:",
         reply_markup=markup
     )
 
 
-# زر الكتابة
+# زر كتابة
 async def writing(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["mode"] = "text"
 
     await update.message.reply_text(
-        "📝 ابعثلي النص الآن، ونحوّلهولك."
+        "📝 ابعث النص الآن:"
     )
 
 
-# زر الصورة
+# زر صورة
 async def image_mode(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["mode"] = "image"
 
     await update.message.reply_text(
-        "🖼️ ابعثلي الصورة الآن، وأنا نقرأ الكتابة اللي فيها ونحوّلها."
+        "🖼️ ابعث الصورة الآن:"
     )
 
 
-# استقبال النص
+# استقبال النصوص
 async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.message or not update.message.text:
         return
 
     text = update.message.text.strip()
 
+    # الأزرار
     if text == "📝 كتابة":
         await writing(update, context)
         return
@@ -96,9 +99,12 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await image_mode(update, context)
         return
 
+    # إذا كتب المستخدم نص عادي
     result = convert_text(text)
 
-    await update.message.reply_text(result)
+    await update.message.reply_text(
+        f"✅ النتيجة:\n{result}"
+    )
 
 
 # استقبال الصور
@@ -109,16 +115,13 @@ async def photo_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("🔎 جاري قراءة الصورة...")
 
     try:
-        # أخذ أعلى جودة للصورة
         photo = update.message.photo[-1]
-
         file = await context.bot.get_file(photo.file_id)
 
         image_path = "image.jpg"
-
         await file.download_to_drive(image_path)
 
-        # قراءة النص من الصورة
+        # OCR
         text = pytesseract.image_to_string(
             image_path,
             config="--psm 6"
@@ -126,7 +129,7 @@ async def photo_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         if not text:
             await update.message.reply_text(
-                "❌ ما قدرتش نلقى كتابة واضحة في الصورة."
+                "❌ لم أجد كتابة واضحة في الصورة."
             )
             return
 
@@ -146,15 +149,10 @@ async def photo_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 def main():
     app = ApplicationBuilder().token(TOKEN).build()
 
-    # /start
-    app.add_handler(
-        MessageHandler(
-            filters.COMMAND & filters.Regex(r"^/start$"),
-            start
-        )
-    )
+    # أمر /start
+    app.add_handler(CommandHandler("start", start))
 
-    # الصور
+    # استقبال الصور
     app.add_handler(
         MessageHandler(
             filters.PHOTO,
@@ -162,7 +160,7 @@ def main():
         )
     )
 
-    # النصوص والأزرار
+    # استقبال النصوص والأزرار
     app.add_handler(
         MessageHandler(
             filters.TEXT & ~filters.COMMAND,
