@@ -49,7 +49,7 @@ def convert_text(text):
 # /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
-        ["📝 كتابة", "🖼️ صورة"]
+        ["📝 اسم ويفي", "🖼️ صورة"]
     ]
 
     markup = ReplyKeyboardMarkup(
@@ -59,8 +59,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
     await update.message.reply_text(
-        "مرحبا 👋\n\n"
-        "اختار العملية:",
+        " وي شباب\n\n"
+        "خير الى صورة ولا اسم:",
         reply_markup=markup
     )
 
@@ -70,7 +70,7 @@ async def writing(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["mode"] = "text"
 
     await update.message.reply_text(
-        "📝 ابعث النص الآن:"
+        "📝 اعطيني اسم ويفي تاع جاركم 😂😉:"
     )
 
 
