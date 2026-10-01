@@ -1,27 +1,33 @@
-name: Run Python
+name: Telegram Bot
 
 on:
   workflow_dispatch:
-  push:
 
 jobs:
-  run:
+  run-bot:
     runs-on: ubuntu-latest
 
     steps:
       - name: Download project
         uses: actions/checkout@v4
 
+      - name: Install Tesseract OCR
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y tesseract-ocr
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: Install libraries
+      - name: Install Python libraries
         run: |
-          if [ -f requirements.txt ]; then
-            pip install -r requirements.txt
-          fi
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-      - name: Run Python
-        run: python bot.py
+      - name: Start Telegram Bot
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+        run: |
+          python bot.py
