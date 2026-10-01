@@ -1,387 +1,217 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lua Command Analyzer</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    * {
-      box-sizing: border-box;
-    }
+<title>Lua File Viewer</title>
 
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #0f1115;
-      color: white;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-    }
+<style>
+* {
+    box-sizing: border-box;
+}
 
-    .container {
-      width: 100%;
-      max-width: 650px;
-      background: #181b22;
-      border: 1px solid #292e38;
-      border-radius: 20px;
-      padding: 25px;
-      box-shadow: 0 15px 40px rgba(0,0,0,.35);
-    }
+body {
+    margin: 0;
+    background: #0d1117;
+    color: white;
+    font-family: Arial, sans-serif;
+    padding: 20px;
+}
 
-    h1 {
-      text-align: center;
-      margin-top: 0;
-    }
+.container {
+    max-width: 900px;
+    margin: auto;
+}
 
-    .subtitle {
-      text-align: center;
-      color: #9ca3af;
-      margin-bottom: 25px;
-    }
+h1 {
+    text-align: center;
+}
 
-    .upload {
-      border: 2px dashed #3b82f6;
-      border-radius: 16px;
-      padding: 35px 15px;
-      text-align: center;
-      cursor: pointer;
-      background: #12151b;
-      transition: .2s;
-    }
+.upload {
+    display: block;
+    background: #161b22;
+    border: 2px dashed #3b82f6;
+    border-radius: 15px;
+    padding: 30px;
+    text-align: center;
+    cursor: pointer;
+    margin: 20px 0;
+}
 
-    .upload:hover {
-      background: #171c25;
-    }
+.upload:hover {
+    background: #1c2330;
+}
 
-    .upload-icon {
-      font-size: 45px;
-      margin-bottom: 10px;
-    }
+input {
+    display: none;
+}
 
-    input[type="file"] {
-      display: none;
-    }
+#fileName {
+    text-align: center;
+    color: #60a5fa;
+    margin: 15px;
+}
 
-    .file-name {
-      margin-top: 15px;
-      color: #60a5fa;
-      word-break: break-all;
-    }
+button {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 10px;
+    background: #2563eb;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-bottom: 20px;
+}
 
-    button {
-      width: 100%;
-      border: 0;
-      border-radius: 12px;
-      padding: 14px;
-      margin-top: 18px;
-      background: #2563eb;
-      color: white;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-    }
+button:hover {
+    background: #1d4ed8;
+}
 
-    button:hover {
-      background: #1d4ed8;
-    }
+.info {
+    background: #161b22;
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
 
-    button:disabled {
-      opacity: .5;
-      cursor: not-allowed;
-    }
+.code-box {
+    direction: ltr;
+    text-align: left;
+    background: #010409;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    padding: 18px;
+    overflow: auto;
+    max-height: 70vh;
+    white-space: pre;
+    font-family: monospace;
+    font-size: 14px;
+    line-height: 1.6;
+}
 
-    .result {
-      display: none;
-      margin-top: 25px;
-    }
-
-    .stats {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 15px;
-    }
-
-    .stat {
-      flex: 1;
-      background: #11141a;
-      border-radius: 12px;
-      padding: 15px;
-      text-align: center;
-    }
-
-    .stat-number {
-      font-size: 25px;
-      font-weight: bold;
-      color: #60a5fa;
-    }
-
-    .commands {
-      background: #0d1015;
-      border-radius: 12px;
-      padding: 15px;
-      max-height: 350px;
-      overflow-y: auto;
-    }
-
-    .command {
-      background: #181c24;
-      padding: 11px;
-      border-radius: 8px;
-      margin-bottom: 8px;
-      direction: ltr;
-      text-align: left;
-      font-family: monospace;
-    }
-
-    .empty {
-      text-align: center;
-      color: #f59e0b;
-      padding: 20px;
-    }
-
-    .download {
-      background: #16a34a;
-    }
-
-    .download:hover {
-      background: #15803d;
-    }
-
-    .warning {
-      margin-top: 20px;
-      padding: 12px;
-      border-radius: 10px;
-      background: #211c0d;
-      color: #fbbf24;
-      font-size: 13px;
-      text-align: center;
-    }
-  </style>
+.hidden {
+    display: none;
+}
+</style>
 </head>
 
 <body>
 
-  <div class="container">
+<div class="container">
 
-    <h1>🤖 Lua Command Analyzer</h1>
+    <h1>📂 Lua File Viewer</h1>
 
-    <div class="subtitle">
-      ارفع ملف Lua لاستخراج الأوامر الموجودة داخله
-    </div>
-
-    <label class="upload" for="luaFile">
-      <div class="upload-icon">📂</div>
-      <div>اضغط هنا لاختيار ملف Lua</div>
-      <div style="color:#9ca3af;margin-top:8px;">
-        .lua فقط
-      </div>
-
-      <input id="luaFile" type="file" accept=".lua">
+    <label class="upload" for="fileInput">
+        📁
+        <br><br>
+        اضغط هنا لاختيار ملف Lua
+        <br>
+        <small>اختر ملف .lua</small>
     </label>
 
-    <div class="file-name" id="fileName"></div>
+    <input id="fileInput" type="file" accept=".lua">
 
-    <button id="analyzeBtn" disabled>
-      🔍 تحليل الملف
+    <div id="fileName"></div>
+
+    <button id="openBtn" disabled>
+        🔓 فتح الملف
     </button>
 
-    <div class="result" id="result">
+    <div id="viewer" class="hidden">
 
-      <div class="stats">
-        <div class="stat">
-          <div>الأوامر</div>
-          <div class="stat-number" id="commandCount">0</div>
+        <div class="info">
+            📄 اسم الملف:
+            <strong id="name"></strong>
         </div>
 
-        <div class="stat">
-          <div>الملف</div>
-          <div style="font-size:14px;margin-top:8px;" id="resultFile">
-            -
-          </div>
+        <div class="info">
+            📊 حجم الملف:
+            <strong id="size"></strong>
         </div>
-      </div>
 
-      <div class="commands" id="commandsList"></div>
+        <div class="info">
+            📝 عدد الأسطر:
+            <strong id="lines"></strong>
+        </div>
 
-      <button class="download" id="downloadBtn">
-        📥 تحميل الأوامر TXT
-      </button>
+        <h3>📜 محتوى الملف:</h3>
+
+        <pre id="code" class="code-box"></pre>
 
     </div>
 
-    <div class="warning">
-      🔐 يتم تحليل محتوى الملف داخل المتصفح فقط ولا يتم تشغيل كود Lua.
-    </div>
-
-  </div>
+</div>
 
 <script>
 
-const fileInput = document.getElementById("luaFile");
-const analyzeBtn = document.getElementById("analyzeBtn");
-const fileName = document.getElementById("fileName");
+const fileInput = document.getElementById("fileInput");
+const openBtn = document.getElementById("openBtn");
 
-const result = document.getElementById("result");
-const commandsList = document.getElementById("commandsList");
-const commandCount = document.getElementById("commandCount");
-const resultFile = document.getElementById("resultFile");
-const downloadBtn = document.getElementById("downloadBtn");
+const fileName = document.getElementById("fileName");
+const viewer = document.getElementById("viewer");
+
+const nameBox = document.getElementById("name");
+const sizeBox = document.getElementById("size");
+const linesBox = document.getElementById("lines");
+const codeBox = document.getElementById("code");
 
 let selectedFile = null;
-let extractedCommands = [];
 
 fileInput.addEventListener("change", function () {
 
-  selectedFile = this.files[0];
+    selectedFile = this.files[0];
 
-  if (!selectedFile) {
-    analyzeBtn.disabled = true;
-    fileName.textContent = "";
-    return;
-  }
+    if (!selectedFile) {
+        openBtn.disabled = true;
+        return;
+    }
 
-  if (!selectedFile.name.toLowerCase().endsWith(".lua")) {
-    alert("❌ اختر ملف Lua فقط.");
-    this.value = "";
-    analyzeBtn.disabled = true;
-    return;
-  }
+    if (!selectedFile.name.toLowerCase().endsWith(".lua")) {
 
-  selectedFile = this.files[0];
+        alert("❌ لازم تختار ملف بصيغة .lua");
 
-  fileName.textContent = "📄 " + selectedFile.name;
+        this.value = "";
+        openBtn.disabled = true;
+        return;
+    }
 
-  analyzeBtn.disabled = false;
+    fileName.textContent = "📄 " + selectedFile.name;
+
+    openBtn.disabled = false;
 });
 
 
-function extractCommands(code) {
+openBtn.addEventListener("click", function () {
 
-  const commands = new Set();
+    if (!selectedFile) return;
 
-  const patterns = [
+    const reader = new FileReader();
 
-    /["'](\/[\w-]+)["']/g,
+    reader.onload = function (event) {
 
-    /\bcommand\s*=\s*["']([^"']+)["']/gi,
+        const content = event.target.result;
 
-    /\bcmd\s*=\s*["']([^"']+)["']/gi,
+        nameBox.textContent = selectedFile.name;
 
-    /[Cc]ommands?\s*\[\s*["']([^"']+)["']\s*\]/g,
+        sizeBox.textContent =
+            (selectedFile.size / 1024).toFixed(2) + " KB";
 
-    /[Rr]egisterCommand\s*\(\s*["']([^"']+)["']/g
+        linesBox.textContent =
+            content.split(/\r\n|\r|\n/).length;
 
-  ];
+        codeBox.textContent = content;
 
-  for (const pattern of patterns) {
+        viewer.classList.remove("hidden");
+    };
 
-    let match;
+    reader.onerror = function () {
+        alert("❌ حدث خطأ أثناء فتح الملف.");
+    };
 
-    while ((match = pattern.exec(code)) !== null) {
-
-      let command = match[1].trim();
-
-      if (command.startsWith("/")) {
-        commands.add(command);
-      }
-
-    }
-
-  }
-
-  return Array.from(commands).sort();
-}
-
-
-analyzeBtn.addEventListener("click", async function () {
-
-  if (!selectedFile) return;
-
-  analyzeBtn.disabled = true;
-  analyzeBtn.textContent = "🔍 جاري التحليل...";
-
-  try {
-
-    const code = await selectedFile.text();
-
-    extractedCommands = extractCommands(code);
-
-    result.style.display = "block";
-
-    commandCount.textContent = extractedCommands.length;
-
-    resultFile.textContent = selectedFile.name;
-
-    commandsList.innerHTML = "";
-
-    if (extractedCommands.length === 0) {
-
-      commandsList.innerHTML = `
-        <div class="empty">
-          ⚠️ لم يتم العثور على أوامر واضحة.
-        </div>
-      `;
-
-    } else {
-
-      extractedCommands.forEach((command, index) => {
-
-        const div = document.createElement("div");
-
-        div.className = "command";
-
-        div.textContent = `${index + 1}. ${command}`;
-
-        commandsList.appendChild(div);
-
-      });
-
-    }
-
-  } catch (error) {
-
-    alert("❌ حدث خطأ أثناء قراءة الملف.");
-
-  }
-
-  analyzeBtn.disabled = false;
-  analyzeBtn.textContent = "🔍 تحليل الملف";
-
-});
-
-
-downloadBtn.addEventListener("click", function () {
-
-  if (extractedCommands.length === 0) {
-    alert("لا توجد أوامر لتحميلها.");
-    return;
-  }
-
-  const content = extractedCommands.join("\n");
-
-  const blob = new Blob(
-    [content],
-    { type: "text/plain;charset=utf-8" }
-  );
-
-  const url = URL.createObjectURL(blob);
-
-  const a = document.createElement("a");
-
-  a.href = url;
-  a.download = "lua_commands.txt";
-
-  document.body.appendChild(a);
-
-  a.click();
-
-  a.remove();
-
-  URL.revokeObjectURL(url);
+    reader.readAsText(selectedFile);
 
 });
 
