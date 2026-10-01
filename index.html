@@ -1,54 +1,108 @@
 import tkinter as tk
-from tkinter import filedialog
+from tkinter import filedialog, messagebox
 import subprocess
 import sys
+import threading
 
-def choose_file():
+
+def choose_and_run():
     file_path = filedialog.askopenfilename(
-        title="اختر ملف Python",
-        filetypes=[("Python files", "*.py")]
+        title="اختار ملف Python",
+        filetypes=[
+            ("Python files", "*.py"),
+            ("All files", "*.*")
+        ]
     )
 
     if not file_path:
         return
 
     output.delete("1.0", tk.END)
-    output.insert(tk.END, f"تشغيل: {file_path}\n\n")
+    output.insert(tk.END, f"📄 الملف:\n{file_path}\n\n")
+    output.insert(tk.END, "▶️ جاري التشغيل...\n\n")
 
-    try:
-        result = subprocess.run(
-            [sys.executable, file_path],
-            capture_output=True,
-            text=True,
-            timeout=30
-        )
+    button.config(state="disabled")
 
-        output.insert(tk.END, result.stdout)
+    def run():
+        try:
+            process = subprocess.run(
+                [sys.executable, file_path],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=30
+            )
 
-        if result.stderr:
-            output.insert(tk.END, "\n--- ERROR ---\n")
-            output.insert(tk.END, result.stderr)
+            result = process.stdout
 
-    except subprocess.TimeoutExpired:
-        output.insert(tk.END, "\n❌ توقف: الملف تجاوز 30 ثانية.")
+            if process.stderr:
+                result += "\n\n❌ ERROR:\n" + process.stderr
 
-    except Exception as e:
-        output.insert(tk.END, f"\n❌ خطأ: {e}")
+            if not result:
+                result = "✅ انتهى البرنامج بدون Output."
+
+            root.after(
+                0,
+                lambda: show_result(result)
+            )
+
+        except subprocess.TimeoutExpired:
+            root.after(
+                0,
+                lambda: show_result(
+                    "⏱️ تم إيقاف الملف لأنه تجاوز 30 ثانية."
+                )
+            )
+
+        except Exception as e:
+            root.after(
+                0,
+                lambda: show_result(
+                    f"❌ حدث خطأ:\n{e}"
+                )
+            )
+
+    threading.Thread(target=run, daemon=True).start()
+
+
+def show_result(result):
+    output.delete("1.0", tk.END)
+    output.insert(tk.END, result)
+    button.config(state="normal")
 
 
 root = tk.Tk()
 root.title("Python File Runner")
-root.geometry("700x500")
+root.geometry("750x500")
+
+title = tk.Label(
+    root,
+    text="🐍 Python File Runner",
+    font=("Arial", 20, "bold")
+)
+title.pack(pady=15)
 
 button = tk.Button(
     root,
-    text="📂 اختر ملف Python وشغّله",
-    command=choose_file,
-    font=("Arial", 14)
+    text="📂 اختيار ملف وتشغيله",
+    command=choose_and_run,
+    font=("Arial", 14),
+    padx=20,
+    pady=10
 )
-button.pack(pady=20)
+button.pack(pady=10)
 
-output = tk.Text(root, font=("Courier", 11))
-output.pack(fill="both", expand=True, padx=15, pady=10)
+output = tk.Text(
+    root,
+    font=("Courier New", 11),
+    wrap="none"
+)
+output.pack(
+    fill="both",
+    expand=True,
+    padx=15,
+    pady=15
+)
 
 root.mainloop()
