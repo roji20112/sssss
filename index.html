@@ -3,8 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lua Runner</title>
 
-<title>Lua File Viewer</title>
+<script src="https://unpkg.com/fengari-web/dist/fengari-web.js"></script>
 
 <style>
 * {
@@ -13,10 +14,10 @@
 
 body {
     margin: 0;
+    padding: 20px;
     background: #0d1117;
     color: white;
     font-family: Arial, sans-serif;
-    padding: 20px;
 }
 
 .container {
@@ -30,13 +31,13 @@ h1 {
 
 .upload {
     display: block;
-    background: #161b22;
-    border: 2px dashed #3b82f6;
-    border-radius: 15px;
-    padding: 30px;
+    padding: 35px 20px;
     text-align: center;
+    border: 2px dashed #3b82f6;
+    border-radius: 16px;
+    background: #161b22;
     cursor: pointer;
-    margin: 20px 0;
+    margin: 25px 0;
 }
 
 .upload:hover {
@@ -47,7 +48,7 @@ input {
     display: none;
 }
 
-#fileName {
+.file {
     text-align: center;
     color: #60a5fa;
     margin: 15px;
@@ -56,7 +57,7 @@ input {
 button {
     width: 100%;
     padding: 14px;
-    border: none;
+    border: 0;
     border-radius: 10px;
     background: #2563eb;
     color: white;
@@ -70,26 +71,36 @@ button:hover {
     background: #1d4ed8;
 }
 
-.info {
-    background: #161b22;
-    padding: 12px;
-    border-radius: 10px;
-    margin-bottom: 10px;
-}
-
-.code-box {
-    direction: ltr;
-    text-align: left;
+.box {
     background: #010409;
     border: 1px solid #30363d;
     border-radius: 12px;
-    padding: 18px;
+    padding: 15px;
+    margin-top: 15px;
+}
+
+pre {
+    direction: ltr;
+    text-align: left;
+    white-space: pre-wrap;
     overflow: auto;
-    max-height: 70vh;
-    white-space: pre;
+    max-height: 400px;
     font-family: monospace;
-    font-size: 14px;
-    line-height: 1.6;
+    line-height: 1.5;
+}
+
+.title {
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #60a5fa;
+}
+
+#error {
+    color: #ff6b6b;
+}
+
+#output {
+    color: #7ee787;
 }
 
 .hidden {
@@ -102,118 +113,141 @@ button:hover {
 
 <div class="container">
 
-    <h1>📂 Lua File Viewer</h1>
+<h1>🤖 Lua Runner</h1>
 
-    <label class="upload" for="fileInput">
-        📁
-        <br><br>
-        اضغط هنا لاختيار ملف Lua
-        <br>
-        <small>اختر ملف .lua</small>
-    </label>
+<label class="upload" for="fileInput">
+    📂
+    <br><br>
+    اضغط هنا لاختيار ملف Lua
+    <br><br>
+    <small>سيتم تشغيل محتوى الملف تلقائيًا</small>
+</label>
 
-    <input id="fileInput" type="file" accept=".lua">
+<input type="file" id="fileInput" accept=".lua">
 
-    <div id="fileName"></div>
+<div class="file" id="fileName"></div>
 
-    <button id="openBtn" disabled>
-        🔓 فتح الملف
-    </button>
+<button id="runBtn" disabled>
+    ▶️ تشغيل Lua
+</button>
 
-    <div id="viewer" class="hidden">
+<div class="box">
+    <div class="title">📜 محتوى الملف</div>
+    <pre id="code">لم يتم اختيار ملف بعد.</pre>
+</div>
 
-        <div class="info">
-            📄 اسم الملف:
-            <strong id="name"></strong>
-        </div>
+<div class="box">
+    <div class="title">🖥️ Output</div>
+    <pre id="output">لا يوجد Output.</pre>
+</div>
 
-        <div class="info">
-            📊 حجم الملف:
-            <strong id="size"></strong>
-        </div>
-
-        <div class="info">
-            📝 عدد الأسطر:
-            <strong id="lines"></strong>
-        </div>
-
-        <h3>📜 محتوى الملف:</h3>
-
-        <pre id="code" class="code-box"></pre>
-
-    </div>
+<div class="box">
+    <div class="title">❌ الأخطاء</div>
+    <pre id="error"></pre>
+</div>
 
 </div>
 
 <script>
 
 const fileInput = document.getElementById("fileInput");
-const openBtn = document.getElementById("openBtn");
+const runBtn = document.getElementById("runBtn");
 
 const fileName = document.getElementById("fileName");
-const viewer = document.getElementById("viewer");
-
-const nameBox = document.getElementById("name");
-const sizeBox = document.getElementById("size");
-const linesBox = document.getElementById("lines");
 const codeBox = document.getElementById("code");
+const outputBox = document.getElementById("output");
+const errorBox = document.getElementById("error");
 
 let selectedFile = null;
+let luaCode = "";
 
-fileInput.addEventListener("change", function () {
+fileInput.addEventListener("change", async function () {
 
     selectedFile = this.files[0];
 
     if (!selectedFile) {
-        openBtn.disabled = true;
+        runBtn.disabled = true;
         return;
     }
 
     if (!selectedFile.name.toLowerCase().endsWith(".lua")) {
 
-        alert("❌ لازم تختار ملف بصيغة .lua");
+        alert("❌ لازم تختار ملف .lua");
 
-        this.value = "";
-        openBtn.disabled = true;
+        fileInput.value = "";
+        runBtn.disabled = true;
         return;
     }
 
     fileName.textContent = "📄 " + selectedFile.name;
 
-    openBtn.disabled = false;
+    luaCode = await selectedFile.text();
+
+    codeBox.textContent = luaCode;
+
+    outputBox.textContent = "";
+    errorBox.textContent = "";
+
+    runBtn.disabled = false;
+
+    // تشغيل تلقائي
+    runLua();
 });
 
 
-openBtn.addEventListener("click", function () {
+runBtn.addEventListener("click", runLua);
 
-    if (!selectedFile) return;
 
-    const reader = new FileReader();
+function runLua() {
 
-    reader.onload = function (event) {
+    if (!luaCode) return;
 
-        const content = event.target.result;
+    outputBox.textContent = "";
+    errorBox.textContent = "";
 
-        nameBox.textContent = selectedFile.name;
+    try {
 
-        sizeBox.textContent =
-            (selectedFile.size / 1024).toFixed(2) + " KB";
+        /*
+         * Lua code is executed by Fengari
+         * inside the browser.
+         */
 
-        linesBox.textContent =
-            content.split(/\r\n|\r|\n/).length;
+        const script = document.createElement("script");
 
-        codeBox.textContent = content;
+        script.type = "application/lua";
 
-        viewer.classList.remove("hidden");
-    };
+        script.textContent = luaCode;
 
-    reader.onerror = function () {
-        alert("❌ حدث خطأ أثناء فتح الملف.");
-    };
+        script.addEventListener("error", function (event) {
 
-    reader.readAsText(selectedFile);
+            errorBox.textContent =
+                "❌ حدث خطأ أثناء تشغيل Lua.";
 
-});
+        });
+
+        document.body.appendChild(script);
+
+        /*
+         * Basic output example:
+         * print("Hello")
+         */
+
+        setTimeout(() => {
+
+            if (!outputBox.textContent) {
+                outputBox.textContent =
+                    "تم تشغيل الملف بدون Output.";
+            }
+
+        }, 100);
+
+    } catch (error) {
+
+        errorBox.textContent =
+            "❌ " + error.message;
+
+    }
+}
 
 </script>
 
